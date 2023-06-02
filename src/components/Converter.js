@@ -2,13 +2,35 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 
-function Converter() {
+const Converter = () => {
   const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("EUR");
   const [amount, setAmount] = useState("");
   const [convertedAmount, setConvertedAmount] = useState(0);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const storedCurrencyData = JSON.parse(
+          localStorage.getItem("currencyData")
+        );
+        if (storedCurrencyData) {
+          const converted = convertCurrency(storedCurrencyData);
+          setConvertedAmount(converted);
+        } else {
+          const response = await axios.get(
+            `https://openexchangerates.org/api/latest.json?app_id=2bc90a6acecb4c7889bc37be2efb91e5`
+          );
+          const rates = response.data.rates;
+          localStorage.setItem("currencyData", JSON.stringify(rates));
+          const converted = convertCurrency(rates);
+          setConvertedAmount(converted);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     const storedData = JSON.parse(localStorage.getItem("conversionData")) || [];
     const isDuplicate = storedData.some(
       (data) =>
@@ -25,28 +47,6 @@ function Converter() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromCurrency, toCurrency, amount]);
-
-  const fetchData = async () => {
-    try {
-      const storedCurrencyData = JSON.parse(
-        localStorage.getItem("currencyData")
-      );
-      if (storedCurrencyData) {
-        const converted = convertCurrency(storedCurrencyData);
-        setConvertedAmount(converted);
-      } else {
-        const response = await axios.get(
-          `https://openexchangerates.org/api/latest.json?app_id=2bc90a6acecb4c7889bc37be2efb91e5`
-        );
-        const rates = response.data.rates;
-        localStorage.setItem("currencyData", JSON.stringify(rates));
-        const converted = convertCurrency(rates);
-        setConvertedAmount(converted);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const convertCurrency = (rates) => {
     const fromRate = rates[fromCurrency];
@@ -122,13 +122,13 @@ function Converter() {
       </div>
     </div>
   );
-}
+};
 
 Converter.propTypes = {
   fromCurrency: PropTypes.string,
   toCurrency: PropTypes.string,
-  amount: PropTypes.string,
-  convertedAmount: PropTypes.string,
+  amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  convertedAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 Converter.defaultProps = {
