@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import PropTypes from "prop-types";
+
+const API_URL = "https://openexchangerates.org/api/latest.json";
+const APP_ID = "2bc90a6acecb4c7889bc37be2efb91e5";
+const CURRENCY_DATA_KEY = "currencyData";
+const CONVERSION_DATA_KEY = "conversionData";
 
 const Converter = () => {
   const [fromCurrency, setFromCurrency] = useState("USD");
@@ -12,17 +16,16 @@ const Converter = () => {
     const fetchData = async () => {
       try {
         const storedCurrencyData = JSON.parse(
-          localStorage.getItem("currencyData")
+          localStorage.getItem(CURRENCY_DATA_KEY)
         );
+
         if (storedCurrencyData) {
           const converted = convertCurrency(storedCurrencyData);
           setConvertedAmount(converted);
         } else {
-          const response = await axios.get(
-            `https://openexchangerates.org/api/latest.json?app_id=2bc90a6acecb4c7889bc37be2efb91e5`
-          );
+          const response = await axios.get(`${API_URL}?app_id=${APP_ID}`);
           const rates = response.data.rates;
-          localStorage.setItem("currencyData", JSON.stringify(rates));
+          localStorage.setItem(CURRENCY_DATA_KEY, JSON.stringify(rates));
           const converted = convertCurrency(rates);
           setConvertedAmount(converted);
         }
@@ -31,7 +34,8 @@ const Converter = () => {
       }
     };
 
-    const storedData = JSON.parse(localStorage.getItem("conversionData")) || [];
+    const storedData =
+      JSON.parse(localStorage.getItem(CONVERSION_DATA_KEY)) || [];
     const isDuplicate = storedData.some(
       (data) =>
         data.fromCurrency === fromCurrency && data.toCurrency === toCurrency
@@ -39,7 +43,7 @@ const Converter = () => {
 
     if (!isDuplicate) {
       const updatedData = [...storedData, { fromCurrency, toCurrency }];
-      localStorage.setItem("conversionData", JSON.stringify(updatedData));
+      localStorage.setItem(CONVERSION_DATA_KEY, JSON.stringify(updatedData));
     }
 
     if (amount !== "") {
@@ -51,7 +55,7 @@ const Converter = () => {
   const convertCurrency = (rates) => {
     const fromRate = rates[fromCurrency];
     const toRate = rates[toCurrency];
-    const converted = ((parseFloat(amount) / fromRate) * toRate).toFixed(2);
+    const converted = ((+amount / fromRate) * toRate).toFixed(2);
 
     if (!isNaN(converted)) {
       return converted;
@@ -71,7 +75,7 @@ const Converter = () => {
 
   const handleAmountChange = (event) => {
     const enteredAmount = event.target.value;
-    const parsedAmount = parseFloat(enteredAmount);
+    const parsedAmount = +enteredAmount;
     if (!isNaN(parsedAmount)) {
       setAmount(parsedAmount);
     } else {
@@ -122,20 +126,6 @@ const Converter = () => {
       </div>
     </div>
   );
-};
-
-Converter.propTypes = {
-  fromCurrency: PropTypes.string,
-  toCurrency: PropTypes.string,
-  amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  convertedAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-Converter.defaultProps = {
-  fromCurrency: "USD",
-  toCurrency: "EUR",
-  amount: "",
-  convertedAmount: "",
 };
 
 export default Converter;
