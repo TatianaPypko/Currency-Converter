@@ -43,3 +43,16 @@ body {
   font-weight: 900;
   color: rgb(105, 92, 92);
 }
+@media (max-width: 480px) {
+  .title {
+    font-size: 27px;
+  }
+
+  .currency__field,
+  .currency__select {
+    margin-top: 7px;
+    font-size: 18px;
+    color: rgb(105, 92, 92);
+    padding: 7px 5px;
+  }
+}
