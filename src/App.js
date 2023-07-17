@@ -1,6 +1,6 @@
 import React from "react";
 import Converter from "./components/Converter";
-import "./App.css";
+import "./index.css";
 
 function App() {
   return <Converter />;
